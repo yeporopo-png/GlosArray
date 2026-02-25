@@ -1,0 +1,16 @@
+
+:root{
+    /* colours */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: white;
+}
+
+header{
+    height: 5vh;
+    background-color: aqua;
+}
