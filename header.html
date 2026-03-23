@@ -21,7 +21,7 @@
                     <a href="agregar.html"  id="agregar"  class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Agregar</a>
                     <a href="editar1.html"  id="editar"   class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Editar</a>
                     <a href="eliminar.html" id="eliminar" class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Eliminar</a>
-                    <a href="guia.html"     id="guia"     class="navb">Guía</a>
+                    <a href="guia.html"     id="guia"     class="navb navb-guia">Guía</a>
                 </div>
             </nav> 
         </div>
@@ -88,6 +88,11 @@ header{
     font-size: 37px;
     color: rgb(0, 255, 0);
     box-shadow: 0px 0px 20px greenyellow;
+}
+
+/* Guía — no onclick guard, never turns red */
+.navb-guia {
+    background-color: rgb(255, 255, 255) !important;
 }
 
 ::grammar-error{
