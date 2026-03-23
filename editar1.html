@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar GA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <script
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous">
+    </script>
+    <script>
+        $(function(){
+            $("#header").load("header.html");
+            $("#footer").load("footer.html");
+        });
+    </script>
+</head>
+<body>
+    <div id="body">
+        <header id="header"></header>
+        <main>
+            <h1 class="secname">Editar</h1>
+
+            <!-- Search bar -->
+            <div class="search-wrapper">
+                <input type="text" id="searchBar" placeholder="🔍 Buscar palabra..." oninput="filtrarTabla()" />
+            </div>
+
+            <p id="statusMsg"></p>
+
+            <!-- Table -->
+            <div class="table-wrapper" id="tableSection">
+                <table class="maintable">
+                    <thead>
+                        <tr>
+                            <th>Palabra</th>
+                            <th>Etimología</th>
+                            <th>Función Sintáctica</th>
+                            <th>Definición</th>
+                            <th>Sinónimos</th>
+                            <th>Antónimos</th>
+                            <th>Ejemplos</th>
+                            <th>Fuentes</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Edit form (hidden until a row is selected) -->
+            <div id="editForm" class="wholething" style="display:none;">
+                <h2 class="secname" style="font-size:24px;">Editando: <span id="editTitle"></span></h2>
+
+                <p class="insectionname">Palabra</p>
+                <textarea name="palabra" class="word" id="edit-palabra"></textarea>
+
+                <div class="bodydiv">
+                    <div class="divleft">
+                        <p class="insectionname">Etimología</p>
+                        <textarea name="etimologia" class="insert" id="edit-etimologia"></textarea>
+
+                        <p class="insectionname">Func. Sintáctica</p>
+                        <textarea name="funcion_sintactica" class="insert" id="edit-funcion"></textarea>
+
+                        <p class="insectionname">Definición</p>
+                        <div class="dynamic-group" id="group-definicion"></div>
+
+                        <p class="insectionname">Sinónimos</p>
+                        <div class="dynamic-group" id="group-sinonimos"></div>
+                    </div>
+                    <div class="divright">
+                        <p class="insectionname">Antónimos</p>
+                        <div class="dynamic-group" id="group-antonimos"></div>
+
+                        <p class="insectionname">Ejemplos</p>
+                        <div class="dynamic-group" id="group-ejemplos"></div>
+
+                        <p class="insectionname">Fuentes</p>
+                        <div class="dynamic-group" id="group-fuentes"></div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button id="cancelBtn" onclick="cancelarEdicion()">Cancelar</button>
+                    <button id="guardarBtn" onclick="guardarEdicion()">Guardar</button>
+                </div>
+            </div>
+        </main>
+        <footer id="footer"></footer>
+    </div>
+
+    <script>
+
+        let currentRowIndex = null;
+
+        const dynamicGroups = [
+            { id: "group-definicion", placeholder: "P. ej. Comenzar." },
+            { id: "group-sinonimos",  placeholder: "P. ej. Comenzar." },
+            { id: "group-antonimos",  placeholder: "P. ej. Terminar." },
+            { id: "group-ejemplos",   placeholder: "P. ej. Iniciar la sesión." },
+            { id: "group-fuentes",    placeholder: "P. ej. Diccionario de la Lengua Española." },
+        ];
+
+        // ── On load ───────────────────────────────────────────────────────────
+        window.onload = function () {
+            fadevisibility();
+            cargarPalabras();
+        }
+
+        function fadevisibility() {
+            document.getElementById("body").style.opacity = 0;
+            setTimeout(function () {
+                document.getElementById("body").style.transition = "opacity 1.5s";
+                document.getElementById("body").style.opacity = 1;
+            }, 100);
+        }
+
+        // ── Fetch all words ───────────────────────────────────────────────────
+        function cargarPalabras() {
+            const url = localStorage.getItem("glosarray_url");
+            if (!url) {
+                showStatus("⚠️ No hay URL guardado. Regresa a Inicio y guarda el URL del Web App.", "red");
+                return;
+            }
+
+            showStatus("⏳ Cargando glosario...", "white");
+
+            fetch(url + "?action=ver")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) { showStatus("❌ Error: " + data.error, "red"); return; }
+                    if (data.data.length === 0) { showStatus("📭 El glosario está vacío.", "white"); return; }
+                    renderTabla(data.data);
+                    showStatus("", "");
+                })
+                .catch(err => showStatus("❌ Error de conexión: " + err, "red"));
+        }
+
+        // ── Render table ──────────────────────────────────────────────────────
+        function renderTabla(palabras) {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+
+            palabras.forEach(function (p, i) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="td-palabra">${escapeHtml(p.palabra)}</td>
+                    <td>${escapeHtml(p.etimologia)}</td>
+                    <td>${escapeHtml(p.funcionSintactica)}</td>
+                    <td>${formatLista(p.definicion)}</td>
+                    <td>${formatLista(p.sinonimos)}</td>
+                    <td>${formatLista(p.antonimos)}</td>
+                    <td>${formatLista(p.ejemplos)}</td>
+                    <td>${formatLista(p.fuentes)}</td>
+                    <td><button class="editBtn" onclick="abrirEdicion(${JSON.stringify(p).replace(/"/g, '&quot;')})">✏️ Editar</button></td>
+                `;
+                tr.style.opacity = 0;
+                tr.style.transition = "opacity 0.4s ease";
+                tbody.appendChild(tr);
+                setTimeout(() => tr.style.opacity = 1, 50 * (i + 1));
+            });
+        }
+
+        // ── Open edit form pre-filled ─────────────────────────────────────────
+        function abrirEdicion(p) {
+            currentRowIndex = p.rowIndex;
+
+            document.getElementById("editTitle").textContent    = p.palabra;
+            document.getElementById("edit-palabra").value       = p.palabra;
+            document.getElementById("edit-etimologia").value    = p.etimologia;
+            document.getElementById("edit-funcion").value       = p.funcionSintactica;
+
+            // Populate dynamic groups
+            const fields = [
+                { id: "group-definicion", value: p.definicion },
+                { id: "group-sinonimos",  value: p.sinonimos },
+                { id: "group-antonimos",  value: p.antonimos },
+                { id: "group-ejemplos",   value: p.ejemplos },
+                { id: "group-fuentes",    value: p.fuentes },
+            ];
+
+            fields.forEach(f => {
+                const cfg = dynamicGroups.find(g => g.id === f.id);
+                populateGroup(f.id, f.value, cfg.placeholder);
+            });
+
+            document.getElementById("tableSection").style.display = "none";
+            document.getElementById("searchBar").parentElement.style.display = "none";
+            document.getElementById("editForm").style.display = "block";
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // ── Populate a dynamic group with existing values ─────────────────────
+        function populateGroup(groupId, text, placeholder) {
+            const group = document.getElementById(groupId);
+            group.innerHTML = "";
+
+            const items = text ? text.split(/\s{2,}(?=\d+\.)/) : [];
+            const values = items.map(i => i.replace(/^\d+\.\s*/, "").trim()).filter(i => i !== "");
+
+            if (values.length === 0) values.push("");
+
+            values.forEach((val, i) => {
+                addTextarea(groupId, placeholder, val);
+            });
+
+            // Always add one empty textarea at the end for new input
+            addTextarea(groupId, placeholder, "");
+        }
+
+        // ── Dynamic textarea logic ────────────────────────────────────────────
+        function addTextarea(groupId, placeholder, value = "") {
+            const group = document.getElementById(groupId);
+            const index = group.querySelectorAll("textarea").length + 1;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "dynamic-wrapper";
+
+            const number = document.createElement("span");
+            number.className = "dynamic-number";
+            number.textContent = index + ".";
+
+            const ta = document.createElement("textarea");
+            ta.className = "insert dynamic-ta";
+            ta.placeholder = index === 1 ? placeholder : "Agregar otro...";
+            ta.value = value;
+
+            ta.addEventListener("input", () => handleInput(groupId, placeholder));
+            ta.addEventListener("blur",  () => handleBlur(groupId, placeholder));
+
+            wrapper.appendChild(number);
+            wrapper.appendChild(ta);
+            group.appendChild(wrapper);
+        }
+
+        function handleInput(groupId, placeholder) {
+            const group     = document.getElementById(groupId);
+            const textareas = group.querySelectorAll("textarea");
+            const last      = textareas[textareas.length - 1];
+            if (last.value.trim() !== "") addTextarea(groupId, placeholder);
+            renumberGroup(groupId);
+        }
+
+        function handleBlur(groupId, placeholder) {
+            const group    = document.getElementById(groupId);
+            const wrappers = group.querySelectorAll(".dynamic-wrapper");
+            wrappers.forEach((wrapper, i) => {
+                const ta     = wrapper.querySelector("textarea");
+                const isLast = i === wrappers.length - 1;
+                if (ta.value.trim() === "" && !isLast) wrapper.remove();
+            });
+            if (group.querySelectorAll("textarea").length === 0) addTextarea(groupId, placeholder);
+            renumberGroup(groupId);
+        }
+
+        function renumberGroup(groupId) {
+            const group    = document.getElementById(groupId);
+            const wrappers = group.querySelectorAll(".dynamic-wrapper");
+            wrappers.forEach((w, i) => w.querySelector(".dynamic-number").textContent = (i + 1) + ".");
+        }
+
+        function collectGroup(groupId) {
+            const group     = document.getElementById(groupId);
+            const textareas = group.querySelectorAll("textarea");
+            const values    = [];
+            textareas.forEach((ta, i) => {
+                const val = ta.value.trim();
+                if (val !== "") values.push((values.length + 1) + ". " + val);
+            });
+            return values.join("  ");
+        }
+
+        // ── Cancel edit ───────────────────────────────────────────────────────
+        function cancelarEdicion() {
+            document.getElementById("editForm").style.display    = "none";
+            document.getElementById("tableSection").style.display = "";
+            document.getElementById("searchBar").parentElement.style.display = "";
+            currentRowIndex = null;
+        }
+
+        // ── Save edit ─────────────────────────────────────────────────────────
+        function guardarEdicion() {
+            const url = localStorage.getItem("glosarray_url");
+            if (!url) { alert("No hay URL guardado."); return; }
+
+            const palabra = document.getElementById("edit-palabra").value.trim();
+            if (!palabra) { alert("La palabra no puede estar vacía."); return; }
+
+            const payload = {
+                action:            "editar",
+                rowIndex:          currentRowIndex,
+                palabra:           palabra,
+                etimologia:        document.getElementById("edit-etimologia").value.trim(),
+                funcionSintactica: document.getElementById("edit-funcion").value.trim(),
+                definicion:        collectGroup("group-definicion"),
+                sinonimos:         collectGroup("group-sinonimos"),
+                antonimos:         collectGroup("group-antonimos"),
+                ejemplos:          collectGroup("group-ejemplos"),
+                fuentes:           collectGroup("group-fuentes"),
+            };
+
+            const btn = document.getElementById("guardarBtn");
+            btn.textContent = "Guardando...";
+            btn.disabled    = true;
+
+            fetch(url, {
+                method:  "POST",
+                headers: { "Content-Type": "text/plain" },
+                body:    JSON.stringify(payload),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("✅ Palabra editada exitosamente.");
+                    location.reload();
+                } else {
+                    alert("❌ Error: " + (data.error || "Algo salió mal."));
+                    btn.textContent = "Guardar";
+                    btn.disabled    = false;
+                }
+            })
+            .catch(err => {
+                alert("❌ Error de conexión: " + err);
+                btn.textContent = "Guardar";
+                btn.disabled    = false;
+            });
+        }
+
+        // ── Search filter ─────────────────────────────────────────────────────
+        function filtrarTabla() {
+            const query = document.getElementById("searchBar").value.trim().toLowerCase();
+            document.querySelectorAll("#tableBody tr").forEach(tr => {
+                const palabra = tr.querySelector(".td-palabra");
+                if (!palabra) return;
+                tr.style.display = palabra.textContent.toLowerCase().includes(query) ? "" : "none";
+            });
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+        function formatLista(text) {
+            if (!text || text.trim() === "") return "—";
+            const items = text.split(/\s{2,}(?=\d+\.)/);
+            if (items.length <= 1) return escapeHtml(text);
+            const listItems = items
+                .map(i => i.trim()).filter(i => i !== "")
+                .map(i => `<li>${escapeHtml(i.replace(/^\d+\.\s*/, ""))}</li>`)
+                .join("");
+            return `<ol class="cell-list">${listItems}</ol>`;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function showStatus(msg, color) {
+            const el = document.getElementById("statusMsg");
+            el.textContent = msg;
+            el.style.color = color;
+        }
+
+    </script>
+</body>
+</html>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+main {
+    padding-bottom: 60px;
+}
+
+#body {
+    padding: 0;
+    box-sizing: border-box;
+    background-image: linear-gradient(to bottom right, rgb(0, 64, 255), rgb(0, 255, 234), rgb(47, 255, 245));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.secname {
+    color: rgb(255, 255, 255);
+    font-size: 30px;
+    font-family: "Orbitron", sans-serif;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    background-color: rgba(0, 0, 0, 0.294);
+    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.339);
+    padding: 10px;
+}
+
+/* ── Search bar ── */
+.search-wrapper {
+    width: 95%;
+    margin: 10px auto 20px auto;
+    text-align: center;
+}
+
+#searchBar {
+    font-family: "Orbitron", sans-serif;
+    font-size: 22px;
+    width: 50%;
+    padding: 10px 20px;
+    border-radius: 3em;
+    border: none;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease-in-out;
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+#searchBar:focus {
+    font-size: 24px;
+    outline: none;
+    box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.6);
+}
+
+#statusMsg {
+    font-family: "Orbitron", sans-serif;
+    font-size: 22px;
+    text-align: center;
+    margin: 20px auto;
+    min-height: 30px;
+}
+
+/* ── Table ── */
+.table-wrapper {
+    width: 95%;
+    margin: 0 auto 40px auto;
+    overflow-x: auto;
+}
+
+.maintable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(0, 0, 0, 0.294);
+    border-radius: 1em;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.455);
+    overflow: hidden;
+}
+
+.maintable th {
+    padding: 12px 10px;
+    text-align: center;
+    font-family: "Orbitron", sans-serif;
+    font-weight: bold;
+    color: rgb(255, 255, 255);
+    font-size: 22px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.637);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.maintable td {
+    padding: 10px 12px;
+    text-align: left;
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    vertical-align: top;
+}
+
+.maintable td:first-child { border-left: none; }
+
+.maintable tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    transition: background-color 0.2s ease;
+}
+
+.td-palabra {
+    font-family: "Orbitron", sans-serif;
+    font-size: 20px !important;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.cell-list {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: decimal;
+}
+
+.cell-list li {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+/* ── Edit button ── */
+.editBtn {
+    font-family: "Orbitron", sans-serif;
+    font-size: 16px;
+    padding: 8px 16px;
+    border-radius: 2em;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    box-shadow: 0px 4px 0px rgb(203, 203, 203);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.editBtn:hover {
+    box-shadow: 0px 4px 0px rgb(203, 203, 203), 0px 4px 15px rgba(0,0,0,0.3);
+}
+
+.editBtn:active {
+    transform: translateY(3px);
+    box-shadow: 0px 1px 0px rgb(203, 203, 203);
+}
+
+/* ── Edit form ── */
+.wholething {
+    width: 100%;
+    padding-bottom: 60px;
+    animation: fadeInForm 0.4s ease;
+}
+
+@keyframes fadeInForm {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.insectionname {
+    color: rgb(0, 0, 0);
+    font-size: 30px;
+    font-family: "Orbitron", sans-serif;
+    text-align: center;
+    margin-bottom: 2px;
+    margin-top: 20px;
+}
+
+.insert {
+    font-size: 25px;
+    width: 70%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    resize: none;
+    field-sizing: content;
+    padding: 5px;
+    transition: all 0.25s ease-in-out;
+}
+
+.insert:focus { font-size: 27px; }
+
+.word {
+    font-size: 30px;
+    width: 30%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+    padding-left: 15px;
+    resize: none;
+    field-sizing: content;
+    transition: all 0.25s ease-in-out;
+}
+
+.word:focus { font-size: 32px; }
+
+.dynamic-group { width: 100%; }
+
+.dynamic-wrapper {
+    display: flex;
+    align-items: flex-start;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 8px;
+    gap: 6px;
+    animation: fadeInTA 0.25s ease-in-out;
+}
+
+@keyframes fadeInTA {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.dynamic-number {
+    font-family: "Orbitron", sans-serif;
+    font-size: 22px;
+    color: rgb(0, 0, 0);
+    padding-top: 4px;
+    min-width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.dynamic-ta {
+    width: 100% !important;
+    margin: 0 !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+
+.bodydiv {
+    display: flex;
+    width: 100%;
+    field-sizing: content;
+}
+
+.divleft, .divright {
+    width: 50%;
+    field-sizing: content;
+}
+
+/* ── Form buttons ── */
+.btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+#guardarBtn, #cancelBtn {
+    font-family: "Orbitron", sans-serif;
+    font-size: 30px;
+    padding: 15px 35px;
+    border-radius: 3em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#guardarBtn {
+    background-color: white;
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203);
+}
+
+#guardarBtn:hover {
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203), 0px 15px 25px rgba(0,0,0,0.4);
+}
+
+#guardarBtn:active {
+    background-color: rgb(0, 255, 0);
+    transform: translateY(7px);
+    box-shadow: 0px 3px 0px rgb(72,139,40), 0px 6px 0px rgb(72,139,40);
+}
+
+#cancelBtn {
+    background-color: white;
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203);
+}
+
+#cancelBtn:hover {
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203), 0px 15px 25px rgba(0,0,0,0.4);
+}
+
+#cancelBtn:active {
+    background-color: rgb(255, 80, 80);
+    transform: translateY(7px);
+    box-shadow: 0px 3px 0px rgb(180,40,40), 0px 6px 0px rgb(180,40,40);
+}
+</style>

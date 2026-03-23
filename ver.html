@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver GA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <script
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous">
+    </script>
+    <script> 
+        $(function(){
+            $("#header").load("header.html"); 
+            $("#footer").load("footer.html"); 
+        });
+    </script>
+</head>
+<body>
+    <div id="body">
+        <header id="header"></header>
+        <main>
+            <h1 class="secname">Ver</h1>
+
+            <!-- Search bar -->
+            <div class="search-wrapper">
+                <input type="text" id="searchBar" placeholder="🔍 Buscar palabra..." oninput="filtrarTabla()" />
+            </div>
+
+            <!-- Loading / error message -->
+            <p id="statusMsg"></p>
+
+            <div class="table-wrapper">
+                <table class="maintable">
+                    <thead>
+                        <tr>
+                            <th>Palabra</th>
+                            <th>Etimología</th>
+                            <th>Función Sintáctica</th>
+                            <th>Definición</th>
+                            <th>Sinónimos</th>
+                            <th>Antónimos</th>
+                            <th>Ejemplos</th>
+                            <th>Fuentes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Rows inserted dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        <footer id="footer"></footer>
+    </div>
+
+    <script>
+
+        // ── On load: fade in + fetch data ─────────────────────────────────────
+        window.onload = function () {
+            fadevisibility();
+            cargarPalabras();
+        }
+
+        function fadevisibility() {
+            document.getElementById("body").style.opacity = 0;
+            setTimeout(function () {
+                document.getElementById("body").style.transition = "opacity 1.5s";
+                document.getElementById("body").style.opacity = 1;
+            }, 100);
+        }
+
+        // ── Fetch all words from Apps Script ──────────────────────────────────
+        function cargarPalabras() {
+            const url = localStorage.getItem("glosarray_url");
+
+            if (!url) {
+                showStatus("⚠️ No hay URL guardado. Regresa a Inicio y guarda el URL del Web App.", "red");
+                return;
+            }
+
+            showStatus("⏳ Cargando glosario...", "white");
+
+            fetch(url + "?action=ver")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        showStatus("❌ Error: " + data.error, "red");
+                        return;
+                    }
+
+                    if (data.data.length === 0) {
+                        showStatus("📭 El glosario está vacío. ¡Agrega tu primera palabra!", "white");
+                        return;
+                    }
+
+                    renderTabla(data.data);
+                    showStatus("", "");
+                })
+                .catch(err => {
+                    showStatus("❌ Error de conexión: " + err, "red");
+                });
+        }
+
+        // ── Render rows into the table ────────────────────────────────────────
+        function renderTabla(palabras) {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+
+            palabras.forEach(function (p) {
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td class="td-palabra">${escapeHtml(p.palabra)}</td>
+                    <td>${escapeHtml(p.etimologia)}</td>
+                    <td>${escapeHtml(p.funcionSintactica)}</td>
+                    <td>${formatLista(p.definicion)}</td>
+                    <td>${formatLista(p.sinonimos)}</td>
+                    <td>${formatLista(p.antonimos)}</td>
+                    <td>${formatLista(p.ejemplos)}</td>
+                    <td>${formatLista(p.fuentes)}</td>
+                `;
+
+                // Fade each row in with a small delay
+                tr.style.opacity = 0;
+                tr.style.transition = "opacity 0.4s ease";
+                tbody.appendChild(tr);
+
+                setTimeout(function () {
+                    tr.style.opacity = 1;
+                }, 50 * (palabras.indexOf(p) + 1));
+            });
+        }
+
+        // ── Convert "1. x  2. y  3. z" → numbered HTML list ──────────────────
+        function formatLista(text) {
+            if (!text || text.trim() === "") return "—";
+
+            // Split by pattern like "  2." or "  3." etc. (double space + number + dot)
+            const items = text.split(/\s{2,}(?=\d+\.)/);
+
+            if (items.length <= 1) {
+                // No numbered items found, just return plain text
+                return escapeHtml(text);
+            }
+
+            const listItems = items
+                .map(item => item.trim())
+                .filter(item => item !== "")
+                .map(item => {
+                    // Strip leading "1. " etc. since we'll show it as an ordered list
+                    const clean = item.replace(/^\d+\.\s*/, "");
+                    return `<li>${escapeHtml(clean)}</li>`;
+                })
+                .join("");
+
+            return `<ol class="cell-list">${listItems}</ol>`;
+        }
+
+        // ── Escape HTML to prevent XSS ────────────────────────────────────────
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        // ── Live search filter by Palabra ─────────────────────────────────────
+        function filtrarTabla() {
+            const query = document.getElementById("searchBar").value.trim().toLowerCase();
+            const rows  = document.querySelectorAll("#tableBody tr");
+
+            rows.forEach(function (tr) {
+                const palabra = tr.querySelector(".td-palabra");
+                if (!palabra) return;
+                const match = palabra.textContent.toLowerCase().includes(query);
+                tr.style.display = match ? "" : "none";
+            });
+        }
+
+        // ── Status message helper ─────────────────────────────────────────────
+        function showStatus(msg, color) {
+            const el = document.getElementById("statusMsg");
+            el.textContent = msg;
+            el.style.color = color;
+        }
+
+    </script>
+</body>
+</html>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+main {
+    field-sizing: content;
+    padding-bottom: 40px;
+}
+
+#body {
+    padding: 0; 
+    box-sizing: border-box; 
+    background-image: linear-gradient(to bottom right, rgb(0, 64, 255), rgb(0, 255, 234), rgb(47, 255, 245)); 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.secname {
+    color: rgb(255, 255, 255);
+    font-size: 30px;
+    font-family: "Orbitron", sans-serif;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    background-color: rgba(0, 0, 0, 0.294);
+    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.339);
+    position: static;
+    padding: 10px;
+}
+
+#statusMsg {
+    font-family: "Orbitron", sans-serif;
+    font-size: 22px;
+    text-align: center;
+    margin: 20px auto;
+    min-height: 30px;
+}
+
+/* ── Search bar ── */
+.search-wrapper {
+    width: 95%;
+    margin: 10px auto 20px auto;
+    text-align: center;
+}
+
+#searchBar {
+    font-family: "Orbitron", sans-serif;
+    font-size: 22px;
+    width: 50%;
+    padding: 10px 20px;
+    border-radius: 3em;
+    border: none;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease-in-out;
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+#searchBar:focus {
+    font-size: 24px;
+    outline: none;
+    box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.6);
+}
+
+
+.table-wrapper {
+    width: 95%;
+    margin: 0 auto 40px auto;
+    overflow-x: auto;
+}
+
+.maintable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(0, 0, 0, 0.294);
+    border-radius: 1em;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.455);
+    overflow: hidden;
+}
+
+.maintable th {
+    padding: 12px 10px;
+    text-align: center;
+    font-family: "Orbitron", sans-serif;
+    font-weight: bold;
+    color: rgb(255, 255, 255);
+    font-size: 22px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.637);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.maintable td {
+    padding: 10px 12px;
+    text-align: left;
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    vertical-align: top;
+}
+
+.maintable td:first-child {
+    border-left: none;
+}
+
+.maintable tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    transition: background-color 0.2s ease;
+}
+
+/* ── Palabra column: bold and slightly larger ── */
+.td-palabra {
+    font-family: "Orbitron", sans-serif;
+    font-size: 20px !important;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* ── Numbered list inside cells ── */
+.cell-list {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: decimal;
+}
+
+.cell-list li {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.cell-list li:last-child {
+    margin-bottom: 0;
+}
+</style>
