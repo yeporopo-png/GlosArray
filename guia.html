@@ -86,13 +86,16 @@
                         <li>En tu Google Sheet, haz clic en el menú <b>Extensiones → Apps Script</b>.</li>
                         <li>Se abrirá una nueva pestaña con un editor de código.</li>
                         <li><b>Borra todo</b> el código que aparece por defecto.</li>
-                        <li>Copia el contenido completo del archivo <b>Code.gs</b> que viene en el repositorio de GitHub.</li>
-                        <li>Pégalo en el editor.</li>
+                        <li>Haz clic en el botón de abajo para copiar el código de GlosArray, luego pégalo en el editor.
+                            <br>
+                            <button class="copy-code-btn" id="copyCodeBtn" onclick="copiarCodigo()">📋 Copiar Code.gs</button>
+                            <p id="copyStatus"></p>
+                        </li>
                         <li>Haz clic en 💾 <b>Guardar</b> (o presiona <b>Ctrl+S</b>).</li>
                         <li>Ponle un nombre al proyecto, por ejemplo: <b>GlosArray</b>.</li>
                     </ol>
                     <div class="step-tip">
-                        💡 El archivo <b>Code.gs</b> se encuentra en el repositorio de GitHub de GlosArray.
+                        💡 El código se copiará directo a tu portapapeles — solo pégalo con <b>Ctrl+V</b> en el editor.
                     </div>
                 </div>
 
@@ -153,7 +156,25 @@
                         ⚠️ <b>Si alguna vez modificas el Code.gs</b>, debes volver a implementar en Apps Script:<br><br>
                         Implementar → Gestionar implementaciones → ✏️ Editar → Nueva versión → Implementar.
                     </div>
-                    <a href="index.html" class="go-home-btn">Ir al Inicio →</a>
+                </div>
+
+                <!-- Step 6: Send to teacher -->
+                <div class="step-card" id="step-6">
+                    <div class="step-icon">👨‍🏫</div>
+                    <h2 class="step-title">Comparte con tu Profesor</h2>
+                    <p class="step-desc">
+                        Para que tu profesor pueda revisar tu glosario, solo necesita el <b>URL del Web App</b> que generaste en el Paso 3.
+                    </p>
+                    <ol class="step-list" style="margin-top: 24px;">
+                        <li>Copia tu <b>URL del Web App</b> de Apps Script.</li>
+                        <li>Envíaselo a tu profesor por el medio que él indique (correo, Teams, classroom, etc.).</li>
+                        <li>El profesor abrirá <b>GlosArray</b>, pegará tu URL en la página de Inicio y hará clic en <b>Guardar URL</b>.</li>
+                        <li>Con eso tendrá acceso completo a tu glosario.</li>
+                    </ol>
+                    <div class="step-tip">
+                        ⚠️ <b>Ten en cuenta</b> que quien tenga tu URL podrá ver, agregar, editar y eliminar palabras de tu glosario. Solo compártelo con tu profesor.
+                    </div>
+                    <a href="index.html" class="go-home-btn" style="margin-top: 30px;">Ir al Inicio →</a>
                 </div>
 
             </div>
@@ -169,10 +190,9 @@
     </div>
 
     <script>
-        const totalSteps = 6; // 0 to 5
+        const totalSteps = 7;
         let currentStep  = 0;
 
-        // ── Build step indicators ─────────────────────────────────────────────
         function buildIndicators() {
             const container = document.getElementById("stepIndicators");
             container.innerHTML = "";
@@ -184,37 +204,205 @@
             }
         }
 
-        // ── Show a specific step ──────────────────────────────────────────────
         function mostrarPaso(index) {
             currentStep = index;
-
-            // Hide all cards
             document.querySelectorAll(".step-card").forEach(card => {
                 card.style.display  = "none";
                 card.style.opacity  = 0;
             });
-
-            // Show current card with fade
             const card = document.getElementById("step-" + index);
             card.style.display = "flex";
             setTimeout(() => card.style.opacity = 1, 20);
-
-            // Update indicators
             buildIndicators();
-
-            // Update buttons
-            document.getElementById("backBtn").style.visibility = index === 0             ? "hidden" : "visible";
+            document.getElementById("backBtn").style.visibility = index === 0              ? "hidden" : "visible";
             document.getElementById("nextBtn").style.visibility = index === totalSteps - 1 ? "hidden" : "visible";
-
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
-        // ── Next / Back ───────────────────────────────────────────────────────
+        function copiarCodigo() {
+            const code = `// ================================================
+//  GlosArray — Google Apps Script Backend
+//  1. Paste this into Extensions > Apps Script
+//  2. Deploy as Web App:
+//     - Execute as: Me
+//     - Who has access: Anyone
+//  3. Copy the Web App URL into GlosArray's index page
+// ================================================
+
+const SHEET_NAME = "Glosario";
+
+function doGet(e)  { return handleRequest(e); }
+function doPost(e) { return handleRequest(e); }
+
+function handleRequest(e) {
+  const output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+
+  try {
+    let action, data;
+
+    if (e.postData && e.postData.contents) {
+      data   = JSON.parse(e.postData.contents);
+      action = data.action;
+    } else {
+      data   = e.parameter;
+      action = e.parameter.action;
+    }
+
+    let result;
+
+    switch (action) {
+      case "ver":      result = verPalabras();         break;
+      case "agregar":  result = agregarPalabra(data);  break;
+      case "editar":   result = editarPalabra(data);   break;
+      case "eliminar": result = eliminarPalabra(data); break;
+      default:
+        result = { error: "Acción no reconocida: " + action };
+    }
+
+    output.setContent(JSON.stringify(result));
+
+  } catch (err) {
+    output.setContent(JSON.stringify({ error: err.toString() }));
+  }
+
+  return output;
+}
+
+function verPalabras() {
+  const sheet = getSheet();
+  const rows  = sheet.getDataRange().getValues();
+
+  if (rows.length <= 1) {
+    return { success: true, data: [] };
+  }
+
+  const palabras = rows.slice(1).map(function(row, index) {
+    return {
+      rowIndex:          index + 2,
+      palabra:           row[0] || "",
+      etimologia:        row[1] || "",
+      funcionSintactica: row[2] || "",
+      definicion:        row[3] || "",
+      sinonimos:         row[4] || "",
+      antonimos:         row[5] || "",
+      ejemplos:          row[6] || "",
+      fuentes:           row[7] || "",
+    };
+  });
+
+  return { success: true, data: palabras };
+}
+
+function agregarPalabra(data) {
+  const sheet = getSheet();
+
+  sheet.appendRow([
+    data.palabra           || "",
+    data.etimologia        || "",
+    data.funcionSintactica || "",
+    data.definicion        || "",
+    data.sinonimos         || "",
+    data.antonimos         || "",
+    data.ejemplos          || "",
+    data.fuentes           || "",
+  ]);
+
+  sortSheet(sheet);
+  return { success: true, message: "Palabra agregada y glosario ordenado." };
+}
+
+function editarPalabra(data) {
+  const sheet    = getSheet();
+  const rowIndex = parseInt(data.rowIndex);
+
+  if (!rowIndex || rowIndex < 2) {
+    return { error: "rowIndex inválido." };
+  }
+
+  sheet.getRange(rowIndex, 1, 1, 8).setValues([[
+    data.palabra           || "",
+    data.etimologia        || "",
+    data.funcionSintactica || "",
+    data.definicion        || "",
+    data.sinonimos         || "",
+    data.antonimos         || "",
+    data.ejemplos          || "",
+    data.fuentes           || "",
+  ]]);
+
+  sortSheet(sheet);
+  return { success: true, message: "Palabra editada y glosario ordenado." };
+}
+
+function eliminarPalabra(data) {
+  const sheet    = getSheet();
+  const rowIndex = parseInt(data.rowIndex);
+
+  if (!rowIndex || rowIndex < 2) {
+    return { error: "rowIndex inválido." };
+  }
+
+  sheet.deleteRow(rowIndex);
+  return { success: true, message: "Palabra eliminada." };
+}
+
+function getSheet() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  let   sheet = ss.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    ensureHeader(sheet);
+  } else {
+    ensureHeader(sheet);
+  }
+
+  return sheet;
+}
+
+function ensureHeader(sheet) {
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow([
+      "Palabra",
+      "Etimología",
+      "Función Sintáctica",
+      "Definición",
+      "Sinónimos",
+      "Antónimos",
+      "Ejemplos",
+      "Fuentes",
+    ]);
+  }
+}
+
+function sortSheet(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 2) return;
+  sheet.getRange(2, 1, lastRow - 1, 8).sort({ column: 1, ascending: true });
+}`;
+
+            navigator.clipboard.writeText(code).then(function () {
+                const btn    = document.getElementById("copyCodeBtn");
+                const status = document.getElementById("copyStatus");
+                btn.textContent    = "✅ ¡Copiado!";
+                btn.style.backgroundColor = "rgb(0, 255, 0)";
+                status.textContent = "Ahora pégalo en el editor de Apps Script con Ctrl+V.";
+                status.style.color = "limegreen";
+                setTimeout(function () {
+                    btn.textContent = "📋 Copiar Code.gs";
+                    btn.style.backgroundColor = "white";
+                    status.textContent = "";
+                }, 3000);
+            }).catch(function () {
+                document.getElementById("copyStatus").textContent = "❌ No se pudo copiar. Intenta manualmente desde el repositorio.";
+                document.getElementById("copyStatus").style.color = "red";
+            });
+        }
+
         function cambiarPaso(direction) {
             const newStep = currentStep + direction;
-            if (newStep >= 0 && newStep < totalSteps) {
-                mostrarPaso(newStep);
-            }
+            if (newStep >= 0 && newStep < totalSteps) mostrarPaso(newStep);
         }
     </script>
 </body>
@@ -252,7 +440,7 @@ main {
     text-align: center;
     margin-bottom: 20px;
     margin-top: 20px;
-    background-color: rgba(0, 0, 0, 0.294);
+    background-color: rgba(0, 0, 0, 0.55);
     box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.339);
     padding: 10px;
 }
@@ -295,7 +483,7 @@ main {
     display: none;
     flex-direction: column;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.294);
+    background-color: rgba(0, 0, 0, 0.6);
     border-radius: 2em;
     padding: 40px 50px;
     box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.3);
@@ -339,7 +527,7 @@ main {
 /* ── Numbered list ── */
 .step-list {
     font-family: "Orbitron", sans-serif;
-    font-size: 17px;
+    font-size: 22px;
     color: white;
     line-height: 1.9;
     padding-left: 24px;
@@ -355,10 +543,42 @@ main {
     margin-top: 6px;
     margin-left: 20px;
     list-style-type: disc;
+    font-size: 20px;
 }
 
 .step-sublist li {
     margin-bottom: 4px;
+}
+
+/* ── Copy code button ── */
+.copy-code-btn {
+    margin-top: 12px;
+    font-family: "Orbitron", sans-serif;
+    font-size: 20px;
+    padding: 12px 28px;
+    border-radius: 3em;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203);
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.copy-code-btn:hover {
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 10px 20px rgba(0,0,0,0.3);
+}
+
+.copy-code-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0px 2px 0px rgb(203,203,203);
+}
+
+#copyStatus {
+    font-family: "Orbitron", sans-serif;
+    font-size: 15px;
+    margin-top: 8px;
+    min-height: 20px;
 }
 
 /* ── Code block ── */
@@ -371,6 +591,7 @@ main {
     border-radius: 0.5em;
     margin-top: 8px;
     word-break: break-all;
+    text-shadow: none;
 }
 
 /* ── Link ── */
@@ -389,7 +610,7 @@ main {
     font-family: "Orbitron", sans-serif;
     font-size: 16px;
     color: white;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.6);
     border-left: 4px solid rgba(255, 255, 255, 0.6);
     padding: 14px 20px;
     border-radius: 0 1em 1em 0;
