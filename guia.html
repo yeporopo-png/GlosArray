@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía GA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <script
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous">
+    </script>
+    <script>
+        $(function(){
+            $("#header").load("header.html");
+            $("#footer").load("footer.html");
+        });
+    </script>
+    <script>
+        window.onload = function () {
+            fadevisibility();
+            mostrarPaso(0);
+        }
+
+        function fadevisibility() {
+            document.getElementById("body").style.opacity = 0;
+            setTimeout(function () {
+                document.getElementById("body").style.transition = "opacity 1.5s";
+                document.getElementById("body").style.opacity = 1;
+            }, 100);
+        }
+    </script>
+</head>
+<body>
+    <div id="body">
+        <header id="header"></header>
+        <main>
+            <h1 class="secname">Guía de Configuración</h1>
+
+            <!-- Step indicators -->
+            <div class="step-indicators" id="stepIndicators"></div>
+
+            <!-- Step cards -->
+            <div class="steps-container" id="stepsContainer">
+
+                <!-- Step 0: Intro -->
+                <div class="step-card" id="step-0">
+                    <div class="step-icon">👋</div>
+                    <h2 class="step-title">¡Bienvenido a GlosArray!</h2>
+                    <p class="step-desc">
+                        GlosArray conecta tu navegador con tu propio archivo de <b>Google Sheets</b> para guardar tu glosario.
+                        Solo necesitas seguir <b>4 pasos sencillos</b> para configurarlo.
+                    </p>
+                    <p class="step-desc" style="margin-top: 16px;">
+                        Este proceso solo lo harás <b>una vez</b>. Después, GlosArray recordará tu configuración automáticamente.
+                    </p>
+                    <div class="step-tip">
+                        💡 <b>Tiempo estimado:</b> 5 minutos
+                    </div>
+                </div>
+
+                <!-- Step 1: Create Sheet -->
+                <div class="step-card" id="step-1">
+                    <div class="step-number">Paso 1 de 4</div>
+                    <div class="step-icon">📄</div>
+                    <h2 class="step-title">Crea tu Google Sheet</h2>
+                    <ol class="step-list">
+                        <li>Abre <a href="https://sheets.google.com" target="_blank" class="step-link">sheets.google.com</a> en una nueva pestaña.</li>
+                        <li>Haz clic en el botón <b>+</b> para crear una hoja de cálculo en blanco.</li>
+                        <li>Ponle el nombre que quieras, por ejemplo: <b>Mi Glosario</b>.</li>
+                        <li>Déjala completamente vacía — GlosArray creará los encabezados automáticamente.</li>
+                    </ol>
+                    <div class="step-tip">
+                        💡 Asegúrate de estar en tu cuenta de Google antes de continuar.
+                    </div>
+                </div>
+
+                <!-- Step 2: Open Apps Script -->
+                <div class="step-card" id="step-2">
+                    <div class="step-number">Paso 2 de 4</div>
+                    <div class="step-icon">⚙️</div>
+                    <h2 class="step-title">Agrega el Apps Script</h2>
+                    <ol class="step-list">
+                        <li>En tu Google Sheet, haz clic en el menú <b>Extensiones → Apps Script</b>.</li>
+                        <li>Se abrirá una nueva pestaña con un editor de código.</li>
+                        <li><b>Borra todo</b> el código que aparece por defecto.</li>
+                        <li>Copia el contenido completo del archivo <b>Code.gs</b> que viene en el repositorio de GitHub.</li>
+                        <li>Pégalo en el editor.</li>
+                        <li>Haz clic en 💾 <b>Guardar</b> (o presiona <b>Ctrl+S</b>).</li>
+                        <li>Ponle un nombre al proyecto, por ejemplo: <b>GlosArray</b>.</li>
+                    </ol>
+                    <div class="step-tip">
+                        💡 El archivo <b>Code.gs</b> se encuentra en el repositorio de GitHub de GlosArray.
+                    </div>
+                </div>
+
+                <!-- Step 3: Deploy -->
+                <div class="step-card" id="step-3">
+                    <div class="step-number">Paso 3 de 4</div>
+                    <div class="step-icon">🚀</div>
+                    <h2 class="step-title">Despliega como Web App</h2>
+                    <ol class="step-list">
+                        <li>En el editor de Apps Script, haz clic en <b>Implementar → Nueva implementación</b>.</li>
+                        <li>Haz clic en el ⚙️ icono junto a "Seleccionar tipo" y elige <b>Aplicación web</b>.</li>
+                        <li>Configura lo siguiente:
+                            <ul class="step-sublist">
+                                <li><b>Descripción:</b> GlosArray v1 (o lo que quieras)</li>
+                                <li><b>Ejecutar como:</b> Yo</li>
+                                <li><b>Quién tiene acceso:</b> Cualquier persona</li>
+                            </ul>
+                        </li>
+                        <li>Haz clic en <b>Implementar</b>.</li>
+                        <li>Google te pedirá que <b>autorices</b> la aplicación — acepta todos los permisos.</li>
+                        <li>Copia la <b>URL del Web App</b> que aparece. Se ve así:
+                            <div class="step-code">https://script.google.com/macros/s/AKfycb.../exec</div>
+                        </li>
+                    </ol>
+                    <div class="step-tip">
+                        ⚠️ <b>Guarda esa URL en un lugar seguro</b> y no la compartas públicamente — da acceso completo a tu hoja.
+                    </div>
+                </div>
+
+                <!-- Step 4: Connect -->
+                <div class="step-card" id="step-4">
+                    <div class="step-number">Paso 4 de 4</div>
+                    <div class="step-icon">🔗</div>
+                    <h2 class="step-title">Conecta GlosArray</h2>
+                    <ol class="step-list">
+                        <li>Regresa a la página de <b>Inicio</b> de GlosArray.</li>
+                        <li>Pega el <b>URL del Web App</b> en el campo de texto.</li>
+                        <li>Haz clic en <b>Guardar URL</b>.</li>
+                        <li>Deberías ver el mensaje <b>✅ URL guardado correctamente.</b></li>
+                        <li>¡Listo! Ya puedes usar <b>Ver</b>, <b>Agregar</b>, <b>Editar</b> y <b>Eliminar</b>.</li>
+                    </ol>
+                    <div class="step-tip">
+                        💡 GlosArray guarda tu URL en el navegador automáticamente. No tendrás que pegarlo de nuevo a menos que cambies de navegador o dispositivo.
+                    </div>
+                </div>
+
+                <!-- Step 5: Done -->
+                <div class="step-card" id="step-5">
+                    <div class="step-icon">🎉</div>
+                    <h2 class="step-title">¡Todo listo!</h2>
+                    <p class="step-desc">
+                        Tu GlosArray está completamente configurado y conectado a tu Google Sheet.
+                    </p>
+                    <p class="step-desc" style="margin-top: 16px;">
+                        Recuerda que cada vez que agregues o edites una palabra, el glosario se <b>ordenará automáticamente de la A a la Z</b>.
+                    </p>
+                    <div class="step-tip" style="margin-top: 24px;">
+                        ⚠️ <b>Si alguna vez modificas el Code.gs</b>, debes volver a implementar en Apps Script:<br><br>
+                        Implementar → Gestionar implementaciones → ✏️ Editar → Nueva versión → Implementar.
+                    </div>
+                    <a href="index.html" class="go-home-btn">Ir al Inicio →</a>
+                </div>
+
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="nav-btns">
+                <button id="backBtn"  onclick="cambiarPaso(-1)">← Anterior</button>
+                <button id="nextBtn"  onclick="cambiarPaso(1)">Siguiente →</button>
+            </div>
+
+        </main>
+        <footer id="footer"></footer>
+    </div>
+
+    <script>
+        const totalSteps = 6; // 0 to 5
+        let currentStep  = 0;
+
+        // ── Build step indicators ─────────────────────────────────────────────
+        function buildIndicators() {
+            const container = document.getElementById("stepIndicators");
+            container.innerHTML = "";
+            for (let i = 0; i < totalSteps; i++) {
+                const dot = document.createElement("div");
+                dot.className = "step-dot" + (i === currentStep ? " active" : "");
+                dot.onclick   = (function(idx) { return function() { mostrarPaso(idx); }; })(i);
+                container.appendChild(dot);
+            }
+        }
+
+        // ── Show a specific step ──────────────────────────────────────────────
+        function mostrarPaso(index) {
+            currentStep = index;
+
+            // Hide all cards
+            document.querySelectorAll(".step-card").forEach(card => {
+                card.style.display  = "none";
+                card.style.opacity  = 0;
+            });
+
+            // Show current card with fade
+            const card = document.getElementById("step-" + index);
+            card.style.display = "flex";
+            setTimeout(() => card.style.opacity = 1, 20);
+
+            // Update indicators
+            buildIndicators();
+
+            // Update buttons
+            document.getElementById("backBtn").style.visibility = index === 0             ? "hidden" : "visible";
+            document.getElementById("nextBtn").style.visibility = index === totalSteps - 1 ? "hidden" : "visible";
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // ── Next / Back ───────────────────────────────────────────────────────
+        function cambiarPaso(direction) {
+            const newStep = currentStep + direction;
+            if (newStep >= 0 && newStep < totalSteps) {
+                mostrarPaso(newStep);
+            }
+        }
+    </script>
+</body>
+</html>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+
+main {
+    padding-bottom: 80px;
+}
+
+#body {
+    padding: 0;
+    box-sizing: border-box;
+    background-image: linear-gradient(to bottom right, rgb(0, 64, 255), rgb(0, 255, 234), rgb(47, 255, 245));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.secname {
+    color: rgb(255, 255, 255);
+    font-size: 30px;
+    font-family: "Orbitron", sans-serif;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    background-color: rgba(0, 0, 0, 0.294);
+    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.339);
+    padding: 10px;
+}
+
+/* ── Step indicators (dots) ── */
+.step-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.step-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0px 0px 6px rgba(0,0,0,0.2);
+}
+
+.step-dot.active {
+    background-color: white;
+    transform: scale(1.3);
+    box-shadow: 0px 0px 12px rgba(255,255,255,0.8);
+}
+
+.step-dot:hover {
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Step card ── */
+.steps-container {
+    width: 65%;
+    margin: 0 auto;
+}
+
+.step-card {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.294);
+    border-radius: 2em;
+    padding: 40px 50px;
+    box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    min-height: 400px;
+}
+
+.step-number {
+    font-family: "Orbitron", sans-serif;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.step-icon {
+    font-size: 70px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+}
+
+.step-title {
+    font-family: "Orbitron", sans-serif;
+    font-size: 28px;
+    color: white;
+    text-align: center;
+    margin-bottom: 24px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+}
+
+.step-desc {
+    font-family: "Orbitron", sans-serif;
+    font-size: 18px;
+    color: white;
+    text-align: center;
+    line-height: 1.7;
+    max-width: 600px;
+}
+
+/* ── Numbered list ── */
+.step-list {
+    font-family: "Orbitron", sans-serif;
+    font-size: 17px;
+    color: white;
+    line-height: 1.9;
+    padding-left: 24px;
+    width: 100%;
+    max-width: 620px;
+}
+
+.step-list li {
+    margin-bottom: 8px;
+}
+
+.step-sublist {
+    margin-top: 6px;
+    margin-left: 20px;
+    list-style-type: disc;
+}
+
+.step-sublist li {
+    margin-bottom: 4px;
+}
+
+/* ── Code block ── */
+.step-code {
+    font-family: monospace;
+    font-size: 15px;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: rgb(0, 255, 180);
+    padding: 10px 16px;
+    border-radius: 0.5em;
+    margin-top: 8px;
+    word-break: break-all;
+}
+
+/* ── Link ── */
+.step-link {
+    color: rgb(180, 255, 240);
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.step-link:hover {
+    color: white;
+}
+
+/* ── Tip box ── */
+.step-tip {
+    font-family: "Orbitron", sans-serif;
+    font-size: 16px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-left: 4px solid rgba(255, 255, 255, 0.6);
+    padding: 14px 20px;
+    border-radius: 0 1em 1em 0;
+    margin-top: 24px;
+    width: 100%;
+    max-width: 620px;
+    line-height: 1.6;
+}
+
+/* ── Go home button (last step) ── */
+.go-home-btn {
+    margin-top: 30px;
+    font-family: "Orbitron", sans-serif;
+    font-size: 24px;
+    padding: 14px 35px;
+    border-radius: 3em;
+    background-color: white;
+    color: black;
+    text-decoration: none;
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203);
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.go-home-btn:hover {
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 10px 25px rgba(0,0,0,0.3);
+}
+
+.go-home-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0px 2px 0px rgb(203,203,203);
+    background-color: rgb(0, 255, 0);
+}
+
+/* ── Nav buttons ── */
+.nav-btns {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 35px;
+}
+
+.nav-btns button {
+    font-family: "Orbitron", sans-serif;
+    font-size: 26px;
+    padding: 14px 35px;
+    border-radius: 3em;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203);
+    transition: all 0.2s ease;
+}
+
+.nav-btns button:hover {
+    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203), 0px 15px 25px rgba(0,0,0,0.35);
+}
+
+.nav-btns button:active {
+    transform: translateY(7px);
+    background-color: rgb(0, 255, 0);
+    box-shadow: 0px 3px 0px rgb(72,139,40), 0px 6px 0px rgb(72,139,40);
+}
+</style>
