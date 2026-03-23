@@ -53,7 +53,108 @@
                 Pega el <b>URL del Web App</b> de tu <i>Google Apps Script</i> para conectar GlosArray a tu hoja de cálculo y usar 
                 (<b>Ver</b>, <b>Agregar</b>, <b>Editar</b>, <b>Eliminar</b>).
                 <br><br>
-                <span class="subtext">¿No sabes cómo obtenerlo? Consulta presiona el botón <b>GUÍA</b> para conocer los pasos, ¡toma solo 5 minutos y listo para siempre! (recuerda guardar tu código y mándaselo al profesor + el link a esta página)</span>
+               <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="hdivtop">
+            <h1 class="hh1">GlosArray</h1>
+            <h2 class="hh2">Glosario Alfabéticamente Ordenado Automáticamente</h2>
+        </div>
+        <div class="hdivbottom">
+            <nav class="navigator">
+                <div style="height: 100%; width: 100%; flex-wrap: wrap;">
+                    <a href="index.html"    id="inicio"   class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Inicio</a>
+                    <a href="ver.html"      id="ver"      class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Ver</a>
+                    <a href="agregar.html"  id="agregar"  class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Agregar</a>
+                    <a href="editar1.html"  id="editar"   class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Editar</a>
+                    <a href="eliminar.html" id="eliminar" class="navb" onclick="return empty()" onmouseover="hoverempty()" onmouseleave="leaveempty()">Eliminar</a>
+                    <a href="guia.html"     id="guia"     class="navb navb-guia">Guía</a>
+                </div>
+            </nav> 
+        </div>
+    </header>
+</body>
+</html>
+
+<style>
+
+header{
+    margin-top: 2vh;
+    height: 30vh;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.hh1{
+    font-size: 50px;
+    color: white; 
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 1.5px 0px 0px black, -1.5px 0px 0px black, 0px 1.5px 0px black, 0px -1.5px 0px black, 1.5px 1.5px 0px black, -1.5px -1.5px 0px black, 1.5px -1.5px 0px black, -1.5px 1.5px 0px black;
+}
+
+.hh2{
+    font-size: 40px;
+    color: white; 
+    font-family: 'Orbitron', sans-serif;
+}
+
+.hdivtop{
+    height: 50%;
+}
+
+.hdivbottom{
+    height: 50%;
+}
+
+.navigator{
+    height: 100%; 
+    width: 100%;
+}
+
+.navigator div a{
+    font-family: "Orbitron", sans-serif; 
+    color: rgb(0, 0, 0); 
+    height: 100%; 
+    width: 100%; 
+    text-align: center; 
+    font-size: 35px; 
+    padding: 15px 25px;
+    margin: 15px; 
+    background-color: rgb(255, 255, 255); 
+    text-decoration: none;
+    transition: ease-in-out, 0.25s;
+    border-radius: 3em;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.175);
+}
+
+.navigator div a:hover{
+    font-size: 40px;
+}
+
+.navigator div a:active{
+    font-size: 37px;
+    color: rgb(0, 255, 0);
+    box-shadow: 0px 0px 20px greenyellow;
+}
+
+/* Guía — no onclick guard, never turns red */
+.navb-guia {
+    background-color: rgb(255, 255, 255) !important;
+}
+
+::grammar-error{
+    background-color: transparent;
+    text-decoration: none;
+}
+</style>
             </p>
         </main>
         <footer id="footer"></footer>
@@ -199,6 +300,7 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
+    margin-buttom: 20px;
     border-radius: 3em;
     padding: 20px 30px;
 }
