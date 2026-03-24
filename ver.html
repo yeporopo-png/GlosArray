@@ -29,15 +29,7 @@
                 <table class="maintable">
                     <thead>
                         <tr>
-                            <th class="th-expand"></th>
-                            <th>Palabra</th>
-                            <th>Etimología</th>
-                            <th>Función Sintáctica</th>
-                            <th>Definición</th>
-                            <th>Sinónimos</th>
-                            <th>Antónimos</th>
-                            <th>Ejemplos</th>
-                            <th>Fuentes</th>
+                            <th colspan="2">Palabra &nbsp;·&nbsp; Pulsa ▼ para expandir sus propiedades</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -52,10 +44,7 @@
 
         function fadevisibility() {
             document.getElementById("body").style.opacity = 0;
-            setTimeout(() => {
-                document.getElementById("body").style.transition = "opacity 1.5s";
-                document.getElementById("body").style.opacity = 1;
-            }, 100);
+            setTimeout(() => { document.getElementById("body").style.transition = "opacity 1.5s"; document.getElementById("body").style.opacity = 1; }, 100);
         }
 
         function cargarPalabras() {
@@ -76,81 +65,49 @@
         function renderTabla(palabras) {
             const tbody = document.getElementById("tableBody");
             tbody.innerHTML = "";
-
             palabras.forEach(function (p, i) {
                 const rowId = "detail-" + i;
-
-                // ── Main row (always visible) ──
                 const mainTr = document.createElement("tr");
                 mainTr.className = "main-row";
                 mainTr.innerHTML = `
-                    <td class="td-toggle">
-                        <button class="expand-btn" onclick="toggleRow('${rowId}', this)" title="Expandir">▼</button>
-                    </td>
                     <td class="td-palabra">${escapeHtml(p.palabra)}</td>
-                    <td class="td-collapsed">${escapeHtml(p.etimologia)}</td>
-                    <td class="td-collapsed">${escapeHtml(p.funcionSintactica)}</td>
-                    <td class="td-collapsed">${formatLista(p.definicion)}</td>
-                    <td class="td-collapsed">${formatLista(p.sinonimos)}</td>
-                    <td class="td-collapsed">${formatLista(p.antonimos)}</td>
-                    <td class="td-collapsed">${formatLista(p.ejemplos)}</td>
-                    <td class="td-collapsed">${formatLista(p.fuentes)}</td>
+                    <td class="td-toggle"><button class="expand-btn" onclick="toggleRow('${rowId}', this)">▼</button></td>
                 `;
                 mainTr.style.opacity = 0;
                 mainTr.style.transition = "opacity 0.4s ease";
                 tbody.appendChild(mainTr);
                 setTimeout(() => mainTr.style.opacity = 1, 50 * (i + 1));
 
-                // ── Detail row (hidden by default) ──
                 const detailTr = document.createElement("tr");
                 detailTr.className = "detail-row";
                 detailTr.id = rowId;
                 detailTr.innerHTML = `
-                    <td colspan="9">
-                        <div class="detail-grid">
-                            <div class="detail-cell"><span class="detail-label">Etimología</span><span class="detail-value">${escapeHtml(p.etimologia) || "—"}</span></div>
-                            <div class="detail-cell"><span class="detail-label">Función Sintáctica</span><span class="detail-value">${escapeHtml(p.funcionSintactica) || "—"}</span></div>
-                            <div class="detail-cell"><span class="detail-label">Definición</span><span class="detail-value">${formatLista(p.definicion)}</span></div>
-                            <div class="detail-cell"><span class="detail-label">Sinónimos</span><span class="detail-value">${formatLista(p.sinonimos)}</span></div>
-                            <div class="detail-cell"><span class="detail-label">Antónimos</span><span class="detail-value">${formatLista(p.antonimos)}</span></div>
-                            <div class="detail-cell"><span class="detail-label">Ejemplos</span><span class="detail-value">${formatLista(p.ejemplos)}</span></div>
-                            <div class="detail-cell detail-cell-wide"><span class="detail-label">Fuentes</span><span class="detail-value">${formatLista(p.fuentes)}</span></div>
-                        </div>
-                    </td>
+                    <td colspan="2"><div class="detail-grid">
+                        <div class="detail-cell"><span class="detail-label">Etimología</span><span class="detail-value">${escapeHtml(p.etimologia)||"—"}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Función Sintáctica</span><span class="detail-value">${escapeHtml(p.funcionSintactica)||"—"}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Definición</span><span class="detail-value">${formatLista(p.definicion)}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Sinónimos</span><span class="detail-value">${formatLista(p.sinonimos)}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Antónimos</span><span class="detail-value">${formatLista(p.antonimos)}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Ejemplos</span><span class="detail-value">${formatLista(p.ejemplos)}</span></div>
+                        <div class="detail-cell detail-cell-wide"><span class="detail-label">Fuentes</span><span class="detail-value">${formatLista(p.fuentes)}</span></div>
+                    </div></td>
                 `;
                 tbody.appendChild(detailTr);
             });
         }
 
-        // ── Toggle expand/collapse ────────────────────────────────────────────
         function toggleRow(rowId, btn) {
-            const detailRow = document.getElementById(rowId);
-            const isOpen    = detailRow.classList.contains("open");
-
-            if (isOpen) {
-                detailRow.classList.remove("open");
-                btn.classList.remove("rotated");
-            } else {
-                detailRow.classList.add("open");
-                btn.classList.add("rotated");
-            }
+            document.getElementById(rowId).classList.toggle("open");
+            btn.classList.toggle("rotated");
         }
 
-        // ── Search filter ─────────────────────────────────────────────────────
         function filtrarTabla() {
-            const query   = document.getElementById("searchBar").value.trim().toLowerCase();
-            const mainRows = document.querySelectorAll(".main-row");
-
-            mainRows.forEach(function (tr) {
-                const palabra = tr.querySelector(".td-palabra");
-                if (!palabra) return;
-                const match = palabra.textContent.toLowerCase().includes(query);
-                // Hide/show both the main row and its detail row
+            const query = document.getElementById("searchBar").value.trim().toLowerCase();
+            document.querySelectorAll(".main-row").forEach(tr => {
+                const match = tr.querySelector(".td-palabra").textContent.toLowerCase().includes(query);
                 tr.style.display = match ? "" : "none";
-                const detailRow = tr.nextElementSibling;
-                if (detailRow && detailRow.classList.contains("detail-row")) {
-                    detailRow.style.display = match ? "" : "none";
-                }
+                const detail = tr.nextElementSibling;
+                if (detail && detail.classList.contains("detail-row")) detail.style.display = match ? "" : "none";
             });
         }
 
@@ -166,9 +123,8 @@
         }
 
         function showStatus(msg, color) {
-            const el = document.getElementById("statusMsg");
-            el.textContent = msg;
-            el.style.color = color;
+            document.getElementById("statusMsg").textContent = msg;
+            document.getElementById("statusMsg").style.color = color;
         }
     </script>
 </body>
@@ -176,113 +132,32 @@
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; background-color: transparent; }
-
-main { field-sizing: content; padding-bottom: 40px; }
-
-#body {
-    padding: 0;
-    box-sizing: border-box;
-    background-image: linear-gradient(to bottom right, rgb(0, 64, 255), rgb(0, 255, 234), rgb(47, 255, 245));
-    background-size: cover; background-position: center; background-repeat: no-repeat;
-    min-height: 100vh; display: grid;
-    grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr);
-}
-
-.secname {
-    color: white; font-size: 30px; font-family: "Orbitron", sans-serif;
-    text-align: center; margin: 20px 0;
-    background-color: rgba(0,0,0,0.294); box-shadow: 0 0 50px rgba(0,0,0,0.339);
-    padding: 10px;
-}
-
+main { padding-bottom: 40px; }
+#body { padding: 0; box-sizing: border-box; background-image: linear-gradient(to bottom right, rgb(0,64,255), rgb(0,255,234), rgb(47,255,245)); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); }
+.secname { color: white; font-size: 30px; font-family: "Orbitron", sans-serif; text-align: center; margin: 20px 0; background-color: rgba(0,0,0,0.294); box-shadow: 0 0 50px rgba(0,0,0,0.339); padding: 10px; }
 #statusMsg { font-family: "Orbitron", sans-serif; font-size: 22px; text-align: center; margin: 20px auto; min-height: 30px; }
-
-/* ── Search ── */
 .search-wrapper { width: 95%; margin: 10px auto 20px auto; text-align: center; }
-#searchBar {
-    font-family: "Orbitron", sans-serif; font-size: 22px; width: 50%;
-    padding: 10px 20px; border-radius: 3em; border: none;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2); transition: all 0.25s ease-in-out;
-    background-color: rgba(255,255,255,0.95);
-}
+#searchBar { font-family: "Orbitron", sans-serif; font-size: 22px; width: 50%; padding: 10px 20px; border-radius: 3em; border: none; box-shadow: 0 0 20px rgba(0,0,0,0.2); transition: all 0.25s ease-in-out; background-color: rgba(255,255,255,0.95); }
 #searchBar:focus { font-size: 24px; outline: none; box-shadow: 0 0 30px rgba(255,255,255,0.6); }
-
-/* ── Table ── */
-.table-wrapper { width: 95%; margin: 0 auto 40px auto; overflow-x: auto; }
-.maintable {
-    width: 100%; border-collapse: collapse;
-    background-color: rgba(0,0,0,0.294); border-radius: 1em;
-    box-shadow: 0 0 20px rgba(0,0,0,0.455); overflow: hidden;
-}
-.maintable th {
-    padding: 12px 10px; text-align: center; font-family: "Orbitron", sans-serif;
-    font-weight: bold; color: white; font-size: 22px;
-    border-bottom: 2px solid rgba(255,255,255,0.637); background-color: rgba(0,0,0,0.2);
-}
-.th-expand { width: 50px; }
-
-/* ── Main row ── */
-.main-row td {
-    padding: 10px 12px; color: white; font-size: 18px;
-    border-bottom: 2px solid rgba(255,255,255,0.3);
-    border-left: 2px solid rgba(255,255,255,0.3);
-    vertical-align: middle;
-}
-.main-row td:first-child { border-left: none; }
-.main-row:hover { background-color: rgba(255,255,255,0.08); transition: background-color 0.2s ease; }
-
-.td-palabra { font-family: "Orbitron", sans-serif; font-size: 20px !important; font-weight: bold; white-space: nowrap; }
-.td-toggle  { text-align: center; width: 50px; }
-
-/* Hide detail columns on main row — only show Palabra + button */
-.td-collapsed { display: none; }
-
-/* ── Expand button ── */
-.expand-btn {
-    background: white; border: none; border-radius: 50%;
-    width: 34px; height: 34px; font-size: 16px; cursor: pointer;
-    box-shadow: 0 3px 0 rgb(203,203,203);
-    transition: transform 0.3s ease, background-color 0.2s ease;
-    display: inline-flex; align-items: center; justify-content: center;
-}
+.table-wrapper { width: 95%; margin: 0 auto 40px auto; }
+.maintable { width: 100%; border-collapse: collapse; background-color: rgba(0,0,0,0.294); border-radius: 1em; box-shadow: 0 0 20px rgba(0,0,0,0.455); overflow: hidden; }
+.maintable thead th { padding: 14px 20px; font-family: "Orbitron", sans-serif; font-size: 18px; color: rgba(255,255,255,0.7); font-weight: normal; border-bottom: 2px solid rgba(255,255,255,0.3); background-color: rgba(0,0,0,0.2); letter-spacing: 1px; }
+.main-row td { padding: 12px 16px; color: white; border-bottom: 2px solid rgba(255,255,255,0.2); vertical-align: middle; }
+.main-row:hover { background-color: rgba(255,255,255,0.07); transition: background-color 0.2s ease; }
+.td-palabra { font-family: "Orbitron", sans-serif; font-size: 20px; font-weight: bold; width: 100%; }
+.td-toggle { text-align: right; white-space: nowrap; padding-right: 16px !important; }
+.expand-btn { background: white; border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; cursor: pointer; transition: transform 0.3s ease, background-color 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
 .expand-btn:hover { background-color: rgb(220,220,220); }
 .expand-btn.rotated { transform: rotate(180deg); }
-
-/* ── Detail row ── */
 .detail-row { display: none; }
 .detail-row.open { display: table-row; }
-.detail-row td {
-    padding: 0;
-    border-bottom: 2px solid rgba(255,255,255,0.3);
-}
-
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background-color: rgba(255,255,255,0.15);
-    animation: expandIn 0.3s ease;
-}
-
-@keyframes expandIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.detail-cell {
-    background-color: rgba(0,0,0,0.35);
-    padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 6px;
-}
+.detail-row td { padding: 0; border-bottom: 2px solid rgba(255,255,255,0.2); }
+.detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background-color: rgba(255,255,255,0.12); animation: expandIn 0.3s ease; }
+@keyframes expandIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.detail-cell { background-color: rgba(0,0,0,0.4); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
 .detail-cell-wide { grid-column: span 3; }
-
-.detail-label {
-    font-family: "Orbitron", sans-serif; font-size: 13px;
-    color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;
-}
+.detail-label { font-family: "Orbitron", sans-serif; font-size: 13px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1px; }
 .detail-value { color: white; font-size: 17px; line-height: 1.5; }
-
-/* ── Lists inside detail ── */
 .cell-list { margin: 0; padding-left: 20px; list-style-type: decimal; }
 .cell-list li { margin-bottom: 4px; line-height: 1.4; }
 </style>
