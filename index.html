@@ -45,7 +45,7 @@
         <main>
             <h1 class="warning">Inserta el URL del Web App antes de usar GlosArray*</h1>
             <center>
-                <textarea id="link" placeholder="Pega aquí el URL del Web App&#10;(https://script.google.com/macros/s/.../exec)"></textarea>
+                <textarea id="link" placeholder="Pega aquí el URL del Web App&#10;(https://script.google.com/macros/s/.../exec)&#10;(https://script.google.com/a/macros/.../exec)"></textarea>
                 <button id="guardarBtn" onclick="guardarURL()">Guardar URL</button>
                 <p id="statusMsg"></p>
             </center>
@@ -53,7 +53,7 @@
                 Pega el <b>URL del Web App</b> de tu <i>Google Apps Script</i> para conectar GlosArray a tu hoja de cálculo y usar 
                 (<b>Ver</b>, <b>Agregar</b>, <b>Editar</b>, <b>Eliminar</b>).
                 <br><br>
-                 <span class="subtext">¿No sabes cómo obtenerlo? Consulta presiona el botón <b>GUÍA</b> para conocer los pasos, ¡toma solo 5 minutos y listo para siempre! (Recuerda guardar tu código y mándaselo al profesor + el link a esta página)</span>
+                <span class="subtext">¿No sabes cómo obtenerlo? Presiona el botón <b>Guía</b> para conocer los pasos, ¡toma solo 5 minutos y listo para siempre! (Recuerda guardar tu URL y mándarselo al profesor junto con el link a esta página)</span>
             </p>
         </main>
         <footer id="footer"></footer>
@@ -69,7 +69,7 @@
                 return;
             }
 
-            if (!url.startsWith("https://script.google.com/macros/s/")) {
+            if (!url.startsWith("https://script.google.com/macros/s/") && !url.startsWith("https://script.google.com/a/macros/")) {
                 showStatus("⚠️ El URL no parece válido. Copia el URL exacto del Web App de Apps Script.", "red");
                 return;
             }
@@ -197,12 +197,11 @@
     font-family: "Orbitron", sans-serif;
     text-align: center;
     margin-top: 25px;
-    background-color: rgba(0, 0, 0, 0.500);
+    background-color: rgba(0, 0, 0, 0.294);
     width: 65%;
     display: block;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 20px;
     border-radius: 3em;
     padding: 20px 30px;
 }
