@@ -7,11 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-    <script
-        src="https://code.jquery.com/jquery-3.3.1.js"
-        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-        crossorigin="anonymous">
-    </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script>
         $(function(){
             $("#header").load("header.html");
@@ -24,67 +21,48 @@
         <header id="header"></header>
         <main>
             <h1 class="secname">Editar</h1>
-
-            <!-- Search bar -->
             <div class="search-wrapper">
                 <input type="text" id="searchBar" placeholder="🔍 Buscar palabra..." oninput="filtrarTabla()" />
             </div>
-
             <p id="statusMsg"></p>
 
-            <!-- Table -->
             <div class="table-wrapper" id="tableSection">
                 <table class="maintable">
                     <thead>
                         <tr>
-                            <th>Palabra</th>
-                            <th>Etimología</th>
-                            <th>Función Sintáctica</th>
-                            <th>Definición</th>
-                            <th>Sinónimos</th>
-                            <th>Antónimos</th>
-                            <th>Ejemplos</th>
-                            <th>Fuentes</th>
-                            <th>Acción</th>
+                            <th>Palabra &nbsp;·&nbsp; Pulsa ▼ para expandir sus propiedades</th>
+                            <th class="th-accion">Acción</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
 
-            <!-- Edit form (hidden until a row is selected) -->
+            <!-- Edit form -->
             <div id="editForm" class="wholething" style="display:none;">
                 <h2 class="secname" style="font-size:24px;">Editando: <span id="editTitle"></span></h2>
-
                 <p class="insectionname">Palabra</p>
-                <textarea name="palabra" class="word" id="edit-palabra"></textarea>
-
+                <textarea class="word" id="edit-palabra"></textarea>
                 <div class="bodydiv">
                     <div class="divleft">
                         <p class="insectionname">Etimología</p>
-                        <textarea name="etimologia" class="insert" id="edit-etimologia"></textarea>
-
+                        <textarea class="insert" id="edit-etimologia"></textarea>
                         <p class="insectionname">Func. Sintáctica</p>
-                        <textarea name="funcion_sintactica" class="insert" id="edit-funcion"></textarea>
-
+                        <textarea class="insert" id="edit-funcion"></textarea>
                         <p class="insectionname">Definición</p>
                         <div class="dynamic-group" id="group-definicion"></div>
-
                         <p class="insectionname">Sinónimos</p>
                         <div class="dynamic-group" id="group-sinonimos"></div>
                     </div>
                     <div class="divright">
                         <p class="insectionname">Antónimos</p>
                         <div class="dynamic-group" id="group-antonimos"></div>
-
                         <p class="insectionname">Ejemplos</p>
                         <div class="dynamic-group" id="group-ejemplos"></div>
-
                         <p class="insectionname">Fuentes</p>
                         <div class="dynamic-group" id="group-fuentes"></div>
                     </div>
                 </div>
-
                 <div class="btn-row">
                     <button id="cancelBtn" onclick="cancelarEdicion()">Cancelar</button>
                     <button id="guardarBtn" onclick="guardarEdicion()">Guardar</button>
@@ -95,9 +73,7 @@
     </div>
 
     <script>
-
         let currentRowIndex = null;
-
         const dynamicGroups = [
             { id: "group-definicion", placeholder: "P. ej. Comenzar." },
             { id: "group-sinonimos",  placeholder: "P. ej. Comenzar." },
@@ -106,32 +82,19 @@
             { id: "group-fuentes",    placeholder: "P. ej. Diccionario de la Lengua Española." },
         ];
 
-        // ── On load ───────────────────────────────────────────────────────────
-        window.onload = function () {
-            fadevisibility();
-            cargarPalabras();
-        }
+        window.onload = function () { fadevisibility(); cargarPalabras(); }
 
         function fadevisibility() {
             document.getElementById("body").style.opacity = 0;
-            setTimeout(function () {
-                document.getElementById("body").style.transition = "opacity 1.5s";
-                document.getElementById("body").style.opacity = 1;
-            }, 100);
+            setTimeout(() => { document.getElementById("body").style.transition = "opacity 1.5s"; document.getElementById("body").style.opacity = 1; }, 100);
         }
 
-        // ── Fetch all words ───────────────────────────────────────────────────
         function cargarPalabras() {
             const url = localStorage.getItem("glosarray_url");
-            if (!url) {
-                showStatus("⚠️ No hay URL guardado. Regresa a Inicio y guarda el URL del Web App.", "red");
-                return;
-            }
-
+            if (!url) { showStatus("⚠️ No hay URL guardado. Regresa a Inicio y guarda el URL del Web App.", "red"); return; }
             showStatus("⏳ Cargando glosario...", "white");
-
             fetch(url + "?action=ver")
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.error) { showStatus("❌ Error: " + data.error, "red"); return; }
                     if (data.data.length === 0) { showStatus("📭 El glosario está vacío.", "white"); return; }
@@ -141,161 +104,150 @@
                 .catch(err => showStatus("❌ Error de conexión: " + err, "red"));
         }
 
-        // ── Render table ──────────────────────────────────────────────────────
         function renderTabla(palabras) {
             const tbody = document.getElementById("tableBody");
             tbody.innerHTML = "";
-
             palabras.forEach(function (p, i) {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
+                const rowId = "detail-" + i;
+
+                const mainTr = document.createElement("tr");
+                mainTr.className = "main-row";
+                mainTr.innerHTML = `
                     <td class="td-palabra">${escapeHtml(p.palabra)}</td>
-                    <td>${escapeHtml(p.etimologia)}</td>
-                    <td>${escapeHtml(p.funcionSintactica)}</td>
-                    <td>${formatLista(p.definicion)}</td>
-                    <td>${formatLista(p.sinonimos)}</td>
-                    <td>${formatLista(p.antonimos)}</td>
-                    <td>${formatLista(p.ejemplos)}</td>
-                    <td>${formatLista(p.fuentes)}</td>
-                    <td><button class="editBtn" onclick="abrirEdicion(${JSON.stringify(p).replace(/"/g, '&quot;')})">✏️ Editar</button></td>
+                    <td class="td-toggle"><button class="expand-btn" onclick="toggleRow('${rowId}', this)">▼</button></td>
                 `;
-                tr.style.opacity = 0;
-                tr.style.transition = "opacity 0.4s ease";
-                tbody.appendChild(tr);
-                setTimeout(() => tr.style.opacity = 1, 50 * (i + 1));
+                mainTr.style.opacity = 0;
+                mainTr.style.transition = "opacity 0.4s ease";
+                tbody.appendChild(mainTr);
+                setTimeout(() => mainTr.style.opacity = 1, 50 * (i + 1));
+
+                const detailTr = document.createElement("tr");
+                detailTr.className = "detail-row";
+                detailTr.id = rowId;
+                detailTr.innerHTML = `
+                    <td colspan="2"><div class="detail-grid">
+                        <div class="detail-cell"><span class="detail-label">Etimología</span><span class="detail-value">${escapeHtml(p.etimologia)||"—"}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Función Sintáctica</span><span class="detail-value">${escapeHtml(p.funcionSintactica)||"—"}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Definición</span><span class="detail-value">${formatLista(p.definicion)}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Sinónimos</span><span class="detail-value">${formatLista(p.sinonimos)}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Antónimos</span><span class="detail-value">${formatLista(p.antonimos)}</span></div>
+                        <div class="detail-cell"><span class="detail-label">Ejemplos</span><span class="detail-value">${formatLista(p.ejemplos)}</span></div>
+                        <div class="detail-cell detail-cell-wide"><span class="detail-label">Fuentes</span><span class="detail-value">${formatLista(p.fuentes)}</span></div>
+                        <div class="detail-cell detail-cell-wide" style="align-items:center;">
+                            <button class="editBtn" onclick="abrirEdicion(${JSON.stringify(p).replace(/"/g,'&quot;')})">✏️ Editar esta palabra</button>
+                        </div>
+                    </div></td>
+                `;
+                tbody.appendChild(detailTr);
             });
         }
 
-        // ── Open edit form pre-filled ─────────────────────────────────────────
+        function toggleRow(rowId, btn) {
+            document.getElementById(rowId).classList.toggle("open");
+            btn.classList.toggle("rotated");
+        }
+
+        function filtrarTabla() {
+            const query = document.getElementById("searchBar").value.trim().toLowerCase();
+            document.querySelectorAll(".main-row").forEach(tr => {
+                const match = tr.querySelector(".td-palabra").textContent.toLowerCase().includes(query);
+                tr.style.display = match ? "" : "none";
+                const detail = tr.nextElementSibling;
+                if (detail && detail.classList.contains("detail-row")) detail.style.display = match ? "" : "none";
+            });
+        }
+
         function abrirEdicion(p) {
             currentRowIndex = p.rowIndex;
-
-            document.getElementById("editTitle").textContent    = p.palabra;
-            document.getElementById("edit-palabra").value       = p.palabra;
-            document.getElementById("edit-etimologia").value    = p.etimologia;
-            document.getElementById("edit-funcion").value       = p.funcionSintactica;
-
-            // Populate dynamic groups
-            const fields = [
+            document.getElementById("editTitle").textContent = p.palabra;
+            document.getElementById("edit-palabra").value    = p.palabra;
+            document.getElementById("edit-etimologia").value = p.etimologia;
+            document.getElementById("edit-funcion").value    = p.funcionSintactica;
+            [
                 { id: "group-definicion", value: p.definicion },
                 { id: "group-sinonimos",  value: p.sinonimos },
                 { id: "group-antonimos",  value: p.antonimos },
                 { id: "group-ejemplos",   value: p.ejemplos },
                 { id: "group-fuentes",    value: p.fuentes },
-            ];
-
-            fields.forEach(f => {
-                const cfg = dynamicGroups.find(g => g.id === f.id);
-                populateGroup(f.id, f.value, cfg.placeholder);
-            });
-
-            document.getElementById("tableSection").style.display = "none";
+            ].forEach(f => populateGroup(f.id, f.value, dynamicGroups.find(g => g.id === f.id).placeholder));
+            document.getElementById("tableSection").style.display            = "none";
             document.getElementById("searchBar").parentElement.style.display = "none";
-            document.getElementById("editForm").style.display = "block";
-
+            document.getElementById("editForm").style.display                = "block";
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
-        // ── Populate a dynamic group with existing values ─────────────────────
         function populateGroup(groupId, text, placeholder) {
-            const group = document.getElementById(groupId);
+            const group  = document.getElementById(groupId);
             group.innerHTML = "";
-
-            const items = text ? text.split(/\s{2,}(?=\d+\.)/) : [];
-            const values = items.map(i => i.replace(/^\d+\.\s*/, "").trim()).filter(i => i !== "");
-
+            const values = (text ? text.split(/\s{2,}(?=\d+\.)/) : []).map(i => i.replace(/^\d+\.\s*/, "").trim()).filter(i => i !== "");
             if (values.length === 0) values.push("");
-
-            values.forEach((val, i) => {
-                addTextarea(groupId, placeholder, val);
-            });
-
-            // Always add one empty textarea at the end for new input
+            values.forEach(val => addTextarea(groupId, placeholder, val));
             addTextarea(groupId, placeholder, "");
         }
 
-        // ── Dynamic textarea logic ────────────────────────────────────────────
         function addTextarea(groupId, placeholder, value = "") {
-            const group = document.getElementById(groupId);
-            const index = group.querySelectorAll("textarea").length + 1;
-
+            const group   = document.getElementById(groupId);
+            const index   = group.querySelectorAll("textarea").length + 1;
             const wrapper = document.createElement("div");
             wrapper.className = "dynamic-wrapper";
-
-            const number = document.createElement("span");
-            number.className = "dynamic-number";
+            const number  = document.createElement("span");
+            number.className   = "dynamic-number";
             number.textContent = index + ".";
-
             const ta = document.createElement("textarea");
-            ta.className = "insert dynamic-ta";
+            ta.className   = "insert dynamic-ta";
             ta.placeholder = index === 1 ? placeholder : "Agregar otro...";
-            ta.value = value;
-
+            ta.value       = value;
             ta.addEventListener("input", () => handleInput(groupId, placeholder));
             ta.addEventListener("blur",  () => handleBlur(groupId, placeholder));
-
             wrapper.appendChild(number);
             wrapper.appendChild(ta);
             group.appendChild(wrapper);
         }
 
         function handleInput(groupId, placeholder) {
-            const group     = document.getElementById(groupId);
-            const textareas = group.querySelectorAll("textarea");
-            const last      = textareas[textareas.length - 1];
-            if (last.value.trim() !== "") addTextarea(groupId, placeholder);
+            const group = document.getElementById(groupId);
+            const tas   = group.querySelectorAll("textarea");
+            if (tas[tas.length - 1].value.trim() !== "") addTextarea(groupId, placeholder);
             renumberGroup(groupId);
         }
 
         function handleBlur(groupId, placeholder) {
             const group    = document.getElementById(groupId);
             const wrappers = group.querySelectorAll(".dynamic-wrapper");
-            wrappers.forEach((wrapper, i) => {
-                const ta     = wrapper.querySelector("textarea");
-                const isLast = i === wrappers.length - 1;
-                if (ta.value.trim() === "" && !isLast) wrapper.remove();
-            });
+            wrappers.forEach((w, i) => { if (w.querySelector("textarea").value.trim() === "" && i !== wrappers.length - 1) w.remove(); });
             if (group.querySelectorAll("textarea").length === 0) addTextarea(groupId, placeholder);
             renumberGroup(groupId);
         }
 
         function renumberGroup(groupId) {
-            const group    = document.getElementById(groupId);
-            const wrappers = group.querySelectorAll(".dynamic-wrapper");
-            wrappers.forEach((w, i) => w.querySelector(".dynamic-number").textContent = (i + 1) + ".");
+            document.getElementById(groupId).querySelectorAll(".dynamic-wrapper").forEach((w, i) => {
+                w.querySelector(".dynamic-number").textContent = (i + 1) + ".";
+            });
         }
 
         function collectGroup(groupId) {
-            const group     = document.getElementById(groupId);
-            const textareas = group.querySelectorAll("textarea");
-            const values    = [];
-            textareas.forEach((ta, i) => {
+            const values = [];
+            document.getElementById(groupId).querySelectorAll("textarea").forEach(ta => {
                 const val = ta.value.trim();
                 if (val !== "") values.push((values.length + 1) + ". " + val);
             });
             return values.join("  ");
         }
 
-        // ── Cancel edit ───────────────────────────────────────────────────────
         function cancelarEdicion() {
-            document.getElementById("editForm").style.display    = "none";
-            document.getElementById("tableSection").style.display = "";
+            document.getElementById("editForm").style.display            = "none";
+            document.getElementById("tableSection").style.display         = "";
             document.getElementById("searchBar").parentElement.style.display = "";
             currentRowIndex = null;
         }
 
-        // ── Save edit ─────────────────────────────────────────────────────────
         function guardarEdicion() {
             const url = localStorage.getItem("glosarray_url");
             if (!url) { alert("No hay URL guardado."); return; }
-
             const palabra = document.getElementById("edit-palabra").value.trim();
             if (!palabra) { alert("La palabra no puede estar vacía."); return; }
-
             const payload = {
-                action:            "editar",
-                rowIndex:          currentRowIndex,
-                palabra:           palabra,
+                action: "editar", rowIndex: currentRowIndex, palabra,
                 etimologia:        document.getElementById("edit-etimologia").value.trim(),
                 funcionSintactica: document.getElementById("edit-funcion").value.trim(),
                 definicion:        collectGroup("group-definicion"),
@@ -304,370 +256,90 @@
                 ejemplos:          collectGroup("group-ejemplos"),
                 fuentes:           collectGroup("group-fuentes"),
             };
-
             const btn = document.getElementById("guardarBtn");
-            btn.textContent = "Guardando...";
-            btn.disabled    = true;
-
-            fetch(url, {
-                method:  "POST",
-                headers: { "Content-Type": "text/plain" },
-                body:    JSON.stringify(payload),
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("✅ Palabra editada exitosamente.");
-                    location.reload();
-                } else {
-                    alert("❌ Error: " + (data.error || "Algo salió mal."));
-                    btn.textContent = "Guardar";
-                    btn.disabled    = false;
-                }
-            })
-            .catch(err => {
-                alert("❌ Error de conexión: " + err);
-                btn.textContent = "Guardar";
-                btn.disabled    = false;
-            });
+            btn.textContent = "Guardando..."; btn.disabled = true;
+            fetch(url, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) { alert("✅ Palabra editada exitosamente."); location.reload(); }
+                    else { alert("❌ Error: " + (data.error || "Algo salió mal.")); btn.textContent = "Guardar"; btn.disabled = false; }
+                })
+                .catch(err => { alert("❌ Error de conexión: " + err); btn.textContent = "Guardar"; btn.disabled = false; });
         }
 
-        // ── Search filter ─────────────────────────────────────────────────────
-        function filtrarTabla() {
-            const query = document.getElementById("searchBar").value.trim().toLowerCase();
-            document.querySelectorAll("#tableBody tr").forEach(tr => {
-                const palabra = tr.querySelector(".td-palabra");
-                if (!palabra) return;
-                tr.style.display = palabra.textContent.toLowerCase().includes(query) ? "" : "none";
-            });
-        }
-
-        // ── Helpers ───────────────────────────────────────────────────────────
         function formatLista(text) {
             if (!text || text.trim() === "") return "—";
             const items = text.split(/\s{2,}(?=\d+\.)/);
             if (items.length <= 1) return escapeHtml(text);
-            const listItems = items
-                .map(i => i.trim()).filter(i => i !== "")
-                .map(i => `<li>${escapeHtml(i.replace(/^\d+\.\s*/, ""))}</li>`)
-                .join("");
-            return `<ol class="cell-list">${listItems}</ol>`;
+            return `<ol class="cell-list">${items.map(i => `<li>${escapeHtml(i.replace(/^\d+\.\s*/, "").trim())}</li>`).join("")}</ol>`;
         }
 
         function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;");
+            return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
         }
 
         function showStatus(msg, color) {
-            const el = document.getElementById("statusMsg");
-            el.textContent = msg;
-            el.style.color = color;
+            document.getElementById("statusMsg").textContent = msg;
+            document.getElementById("statusMsg").style.color = color;
         }
-
     </script>
 </body>
 </html>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    background-color: transparent;
-}
-
-main {
-    padding-bottom: 60px;
-}
-
-#body {
-    padding: 0;
-    box-sizing: border-box;
-    background-image: linear-gradient(to bottom right, rgb(0, 64, 255), rgb(0, 255, 234), rgb(47, 255, 245));
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    min-height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.secname {
-    color: rgb(255, 255, 255);
-    font-size: 30px;
-    font-family: "Orbitron", sans-serif;
-    text-align: center;
-    margin-bottom: 20px;
-    margin-top: 20px;
-    background-color: rgba(0, 0, 0, 0.294);
-    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.339);
-    padding: 10px;
-}
-
-/* ── Search bar ── */
-.search-wrapper {
-    width: 95%;
-    margin: 10px auto 20px auto;
-    text-align: center;
-}
-
-#searchBar {
-    font-family: "Orbitron", sans-serif;
-    font-size: 22px;
-    width: 50%;
-    padding: 10px 20px;
-    border-radius: 3em;
-    border: none;
-    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
-    transition: all 0.25s ease-in-out;
-    background-color: rgba(255, 255, 255, 0.95);
-}
-
-#searchBar:focus {
-    font-size: 24px;
-    outline: none;
-    box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.6);
-}
-
-#statusMsg {
-    font-family: "Orbitron", sans-serif;
-    font-size: 22px;
-    text-align: center;
-    margin: 20px auto;
-    min-height: 30px;
-}
-
-/* ── Table ── */
-.table-wrapper {
-    width: 95%;
-    margin: 0 auto 40px auto;
-    overflow-x: auto;
-}
-
-.maintable {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: rgba(0, 0, 0, 0.294);
-    border-radius: 1em;
-    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.455);
-    overflow: hidden;
-}
-
-.maintable th {
-    padding: 12px 10px;
-    text-align: center;
-    font-family: "Orbitron", sans-serif;
-    font-weight: bold;
-    color: rgb(255, 255, 255);
-    font-size: 22px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.637);
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-.maintable td {
-    padding: 10px 12px;
-    text-align: left;
-    color: rgb(255, 255, 255);
-    font-size: 18px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-    border-left: 2px solid rgba(255, 255, 255, 0.3);
-    vertical-align: top;
-}
-
-.maintable td:first-child { border-left: none; }
-
-.maintable tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    transition: background-color 0.2s ease;
-}
-
-.td-palabra {
-    font-family: "Orbitron", sans-serif;
-    font-size: 20px !important;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-.cell-list {
-    margin: 0;
-    padding-left: 20px;
-    list-style-type: decimal;
-}
-
-.cell-list li {
-    margin-bottom: 4px;
-    line-height: 1.4;
-}
-
-/* ── Edit button ── */
-.editBtn {
-    font-family: "Orbitron", sans-serif;
-    font-size: 16px;
-    padding: 8px 16px;
-    border-radius: 2em;
-    border: none;
-    background-color: white;
-    cursor: pointer;
-    box-shadow: 0px 4px 0px rgb(203, 203, 203);
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.editBtn:hover {
-    box-shadow: 0px 4px 0px rgb(203, 203, 203), 0px 4px 15px rgba(0,0,0,0.3);
-}
-
-.editBtn:active {
-    transform: translateY(3px);
-    box-shadow: 0px 1px 0px rgb(203, 203, 203);
-}
-
-/* ── Edit form ── */
-.wholething {
-    width: 100%;
-    padding-bottom: 60px;
-    animation: fadeInForm 0.4s ease;
-}
-
-@keyframes fadeInForm {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.insectionname {
-    color: rgb(0, 0, 0);
-    font-size: 30px;
-    font-family: "Orbitron", sans-serif;
-    text-align: center;
-    margin-bottom: 2px;
-    margin-top: 20px;
-}
-
-.insert {
-    font-size: 25px;
-    width: 70%;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    resize: none;
-    field-sizing: content;
-    padding: 5px;
-    transition: all 0.25s ease-in-out;
-}
-
+* { margin: 0; padding: 0; box-sizing: border-box; background-color: transparent; }
+main { padding-bottom: 60px; }
+#body { padding: 0; box-sizing: border-box; background-image: linear-gradient(to bottom right, rgb(0,64,255), rgb(0,255,234), rgb(47,255,245)); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); }
+.secname { color: white; font-size: 30px; font-family: "Orbitron", sans-serif; text-align: center; margin: 20px 0; background-color: rgba(0,0,0,0.294); box-shadow: 0 0 50px rgba(0,0,0,0.339); padding: 10px; }
+#statusMsg { font-family: "Orbitron", sans-serif; font-size: 22px; text-align: center; margin: 20px auto; min-height: 30px; }
+.search-wrapper { width: 95%; margin: 10px auto 20px auto; text-align: center; }
+#searchBar { font-family: "Orbitron", sans-serif; font-size: 22px; width: 50%; padding: 10px 20px; border-radius: 3em; border: none; box-shadow: 0 0 20px rgba(0,0,0,0.2); transition: all 0.25s ease-in-out; background-color: rgba(255,255,255,0.95); }
+#searchBar:focus { font-size: 24px; outline: none; box-shadow: 0 0 30px rgba(255,255,255,0.6); }
+.table-wrapper { width: 95%; margin: 0 auto 40px auto; }
+.maintable { width: 100%; border-collapse: collapse; background-color: rgba(0,0,0,0.294); border-radius: 1em; box-shadow: 0 0 20px rgba(0,0,0,0.455); overflow: hidden; }
+.maintable thead th { padding: 14px 20px; font-family: "Orbitron", sans-serif; font-size: 18px; color: rgba(255,255,255,0.7); font-weight: normal; border-bottom: 2px solid rgba(255,255,255,0.3); background-color: rgba(0,0,0,0.2); letter-spacing: 1px; }
+.th-accion { text-align: center; white-space: nowrap; width: 80px; }
+.main-row td { padding: 12px 16px; color: white; border-bottom: 2px solid rgba(255,255,255,0.2); vertical-align: middle; }
+.main-row:hover { background-color: rgba(255,255,255,0.07); transition: background-color 0.2s ease; }
+.td-palabra { font-family: "Orbitron", sans-serif; font-size: 20px; font-weight: bold; width: 100%; }
+.td-toggle { text-align: center; white-space: nowrap; padding-right: 16px !important; width: 80px; }
+.expand-btn { background: white; border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; cursor: pointer; transition: transform 0.3s ease, background-color 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
+.expand-btn:hover { background-color: rgb(220,220,220); }
+.expand-btn.rotated { transform: rotate(180deg); }
+.detail-row { display: none; }
+.detail-row.open { display: table-row; }
+.detail-row td { padding: 0; border-bottom: 2px solid rgba(255,255,255,0.2); }
+.detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background-color: rgba(255,255,255,0.12); animation: expandIn 0.3s ease; }
+@keyframes expandIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.detail-cell { background-color: rgba(0,0,0,0.4); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.detail-cell-wide { grid-column: span 3; }
+.detail-label { font-family: "Orbitron", sans-serif; font-size: 13px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1px; }
+.detail-value { color: white; font-size: 17px; line-height: 1.5; }
+.cell-list { margin: 0; padding-left: 20px; list-style-type: decimal; }
+.cell-list li { margin-bottom: 4px; line-height: 1.4; }
+.editBtn { font-family: "Orbitron", sans-serif; font-size: 16px; padding: 8px 16px; border-radius: 2em; border: none; background-color: white; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+.editBtn:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.editBtn:active { transform: translateY(2px); }
+.wholething { width: 100%; padding-bottom: 60px; animation: fadeInForm 0.4s ease; }
+@keyframes fadeInForm { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.insectionname { color: black; font-size: 30px; font-family: "Orbitron", sans-serif; text-align: center; margin-bottom: 2px; margin-top: 20px; }
+.insert { font-size: 25px; width: 70%; display: block; margin: auto; resize: none; field-sizing: content; padding: 5px; transition: all 0.25s ease-in-out; }
 .insert:focus { font-size: 27px; }
-
-.word {
-    font-size: 30px;
-    width: 30%;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 20px;
-    padding-left: 15px;
-    resize: none;
-    field-sizing: content;
-    transition: all 0.25s ease-in-out;
-}
-
+.word { font-size: 30px; width: 30%; display: block; margin: auto; margin-bottom: 20px; padding-left: 15px; resize: none; field-sizing: content; transition: all 0.25s ease-in-out; }
 .word:focus { font-size: 32px; }
-
 .dynamic-group { width: 100%; }
-
-.dynamic-wrapper {
-    display: flex;
-    align-items: flex-start;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 8px;
-    gap: 6px;
-    animation: fadeInTA 0.25s ease-in-out;
-}
-
-@keyframes fadeInTA {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.dynamic-number {
-    font-family: "Orbitron", sans-serif;
-    font-size: 22px;
-    color: rgb(0, 0, 0);
-    padding-top: 4px;
-    min-width: 28px;
-    text-align: right;
-    flex-shrink: 0;
-}
-
-.dynamic-ta {
-    width: 100% !important;
-    margin: 0 !important;
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
-}
-
-.bodydiv {
-    display: flex;
-    width: 100%;
-    field-sizing: content;
-}
-
-.divleft, .divright {
-    width: 50%;
-    field-sizing: content;
-}
-
-/* ── Form buttons ── */
-.btn-row {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-top: 40px;
-}
-
-#guardarBtn, #cancelBtn {
-    font-family: "Orbitron", sans-serif;
-    font-size: 30px;
-    padding: 15px 35px;
-    border-radius: 3em;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-#guardarBtn {
-    background-color: white;
-    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203);
-}
-
-#guardarBtn:hover {
-    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203), 0px 15px 25px rgba(0,0,0,0.4);
-}
-
-#guardarBtn:active {
-    background-color: rgb(0, 255, 0);
-    transform: translateY(7px);
-    box-shadow: 0px 3px 0px rgb(72,139,40), 0px 6px 0px rgb(72,139,40);
-}
-
-#cancelBtn {
-    background-color: white;
-    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203);
-}
-
-#cancelBtn:hover {
-    box-shadow: 0px 5px 0px rgb(203,203,203), 0px 10px 0px rgb(203,203,203), 0px 15px 0px rgb(203,203,203), 0px 15px 25px rgba(0,0,0,0.4);
-}
-
-#cancelBtn:active {
-    background-color: rgb(255, 80, 80);
-    transform: translateY(7px);
-    box-shadow: 0px 3px 0px rgb(180,40,40), 0px 6px 0px rgb(180,40,40);
-}
+.dynamic-wrapper { display: flex; align-items: flex-start; width: 80%; margin: 8px auto 0 auto; gap: 6px; animation: fadeInTA 0.25s ease-in-out; }
+@keyframes fadeInTA { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.dynamic-number { font-family: "Orbitron", sans-serif; font-size: 22px; color: black; padding-top: 4px; min-width: 28px; text-align: right; flex-shrink: 0; }
+.dynamic-ta { width: 100% !important; margin: 0 !important; padding-top: 5px !important; padding-bottom: 5px !important; }
+.bodydiv { display: flex; width: 100%; field-sizing: content; }
+.divleft, .divright { width: 50%; field-sizing: content; }
+.btn-row { display: flex; justify-content: center; gap: 30px; margin-top: 40px; }
+#guardarBtn, #cancelBtn { font-family: "Orbitron", sans-serif; font-size: 30px; padding: 15px 35px; border-radius: 3em; border: none; cursor: pointer; transition: all 0.2s ease; }
+#guardarBtn { background-color: white; box-shadow: 0 5px 0 rgb(203,203,203), 0 10px 0 rgb(203,203,203), 0 15px 0 rgb(203,203,203); }
+#guardarBtn:hover { box-shadow: 0 5px 0 rgb(203,203,203), 0 10px 0 rgb(203,203,203), 0 15px 0 rgb(203,203,203), 0 15px 25px rgba(0,0,0,0.4); }
+#guardarBtn:active { background-color: rgb(0,255,0); transform: translateY(7px); box-shadow: 0 3px 0 rgb(72,139,40), 0 6px 0 rgb(72,139,40); }
+#cancelBtn { background-color: white; box-shadow: 0 5px 0 rgb(203,203,203), 0 10px 0 rgb(203,203,203), 0 15px 0 rgb(203,203,203); }
+#cancelBtn:hover { box-shadow: 0 5px 0 rgb(203,203,203), 0 10px 0 rgb(203,203,203), 0 15px 0 rgb(203,203,203), 0 15px 25px rgba(0,0,0,0.4); }
+#cancelBtn:active { background-color: rgb(255,80,80); transform: translateY(7px); box-shadow: 0 3px 0 rgb(180,40,40), 0 6px 0 rgb(180,40,40); }
 </style>
